@@ -31,7 +31,9 @@ class SimpleHRNet:
                  yolo_model_def="./models/detectors/yolo/config/yolov3.cfg",
                  yolo_class_path="./models/detectors/yolo/data/coco.names",
                  yolo_weights_path="./models/detectors/yolo/weights/yolov3.weights",
-                 device=torch.device("cpu")):
+                 device=torch.device("cpu"),
+                 img_size=(384,288),
+                 ):
         """
         Initializes a new SimpleHRNet object.
         HRNet (and YOLOv3) are initialized on the torch.device("device") and
@@ -83,6 +85,7 @@ class SimpleHRNet:
         self.yolo_class_path = yolo_class_path
         self.yolo_weights_path = yolo_weights_path
         self.device = device
+        self.img_size = img_size
 
         if self.multiperson:
             from models.detectors.YOLOv3 import YOLOv3
@@ -106,6 +109,7 @@ class SimpleHRNet:
             if 'cuda' == str(self.device):
                 # if device is set to 'cuda', all available GPUs will be used
                 print("%d GPU(s) will be used" % torch.cuda.device_count())
+                # TODO LIST 여기도 실행 됨.
                 device_ids = None
             else:
                 # if device is set to 'cuda:IDS', only that/those device(s) will be used
@@ -128,12 +132,15 @@ class SimpleHRNet:
             ])
 
         else:
+            print("SimpleHRNet py파일에서 133번 라인까지 진행이 된다.")
             self.detector = YOLOv3(model_def=yolo_model_def,
                                    class_path=yolo_class_path,
                                    weights_path=yolo_weights_path,
                                    classes=('person',),
                                    max_batch_size=self.max_batch_size,
-                                   device=device)
+                                   device=device,
+                                   img_size=img_size)
+            print("SimpleHRNet py파일에서 140번 라인까지 진행이 된다.")  # 여기서 오류 뜸.
             self.transform = transforms.Compose([
                 transforms.ToPILImage(),
                 transforms.Resize((self.resolution[0], self.resolution[1])),  # (height, width)
@@ -174,8 +181,10 @@ class SimpleHRNet:
         """
         if len(image.shape) == 3:
             return self._predict_single(image)
+
         elif len(image.shape) == 4:
             return self._predict_batch(image)
+
         else:
             raise ValueError('Wrong image format.')
 
@@ -204,7 +213,8 @@ class SimpleHRNet:
                                 dtype=np.float32)
 
             if detections is not None:
-                for i, (x1, y1, x2, y2, conf, cls_conf, cls_pred) in enumerate(detections):
+                #for i, (x1, y1, x2, y2, conf, cls_conf, cls_pred) in enumerate(detections):
+                for i, (x1, y1, x2, y2, conf,  cls_pred) in enumerate(detections):
                     x1 = int(round(x1.item()))
                     x2 = int(round(x2.item()))
                     y1 = int(round(y1.item()))
