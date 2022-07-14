@@ -9,8 +9,8 @@ from torchvision.transforms import transforms
 
 sys.path.append(os.path.join(os.getcwd(), 'models', 'detectors', 'yolo'))
 
-from .yolo.models import Darknet
-from .yolo.utils.utils import load_classes, non_max_suppression
+from .yolo.pytorchyolo.models import Darknet
+from .yolo.pytorchyolo.utils.utils import load_classes, non_max_suppression
 
 
 def filter_classes(detections, classes):
